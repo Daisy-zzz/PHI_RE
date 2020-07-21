@@ -19,6 +19,33 @@ eList = []
 eDict = {}
 rDict = {}
 
+def re2id():
+    relation = []
+    entity = []
+    for j in range(len(data)):
+        strList = data['annotation'][j].split('\n')
+        # e: {T79:[E320ca3f6,7,9,乳腺],...}
+        for i in range(len(strList) - 1):
+            str_splited = strList[i].split()
+            if len(str_splited) and str_splited[0][0] == 'T':
+                entity.append(str_splited[1])
+            elif len(str_splited) and str_splited[0][0] == 'R':
+                relation.append(str_splited[1])
+    entity = list(set(entity))
+    relation = list(set(relation))
+    e2id = ''
+    r2id = ''
+    with open("data/entity2id.txt", "w") as f:
+        for i in range(len(entity)):
+            f.write(entity[i] + '\t' + str(i) + '\n')
+
+    with open("data/relation2id.txt", "w") as f:
+        f.write('None' + '\t' + '0' + '\n')
+        for i in range(len(relation)):
+            f.write(relation[i] + '\t' + str(i + 1) + '\n')
+re2id()
+
+
 
 def gen_nonType(n):
     j = 0
@@ -81,7 +108,8 @@ def gen_nonType(n):
                     data_non.loc[len(data_non)] = [entity1, e1type, entity2, e2type, relation, sentence]
                     break
     data_non.to_csv('data_non.csv', encoding='utf-8')
-gen_nonType(200)
+
+
 
 def gen_new_table():
     max_length = 0

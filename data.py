@@ -5,7 +5,9 @@ from gensim.models import Word2Vec
 import jieba
 import re
 dummy = np.random.rand(1, 128)
-data = pd.read_csv('data/data.csv').astype(str)
+data1 = pd.read_csv('data/data.csv').astype(str)
+data2 = pd.read_csv('data/data_non.csv').astype(str)
+data = pd.concat([data1, data2])
 model = gensim.models.KeyedVectors.load_word2vec_format('data/wordembedding/190721_AAAA_jieba_vec_128.vec')
 
 

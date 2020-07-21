@@ -6,7 +6,9 @@ import xgboost as xgb
 from sklearn.metrics import precision_score
 from sklearn.metrics import f1_score
 from data import getFmat
-data = pd.read_csv('data/data.csv')
+data1 = pd.read_csv('data/data.csv')
+data2 = pd.read_csv('data/data_non.csv')
+data = pd.concat([data1, data2])
 data = data[['E1type', 'E2type', 'Relation']]
 
 # label encode
@@ -14,8 +16,8 @@ label_encoder = LabelEncoder()
 data['E1type'] = label_encoder.fit_transform(data['E1type'].values)
 data['E2type'] = label_encoder.fit_transform(data['E2type'].values)
 data['Relation'] = label_encoder.fit_transform(data['Relation'].values)
-#fmat = getFmat()
-#np.save('fmat.npy', fmat)
+# fmat = getFmat()
+# np.save('fmat.npy', fmat)
 fmat = np.load('fmat.npy')
 # new_data = np.hstack((data.values[:, :2], fmat))
 new_data = fmat
@@ -38,7 +40,7 @@ param['objective'] = 'multi:softmax'
 param['eta'] = 0.1
 param['max_depth'] = 6
 param['silent'] = 0
-param['num_class'] = 21
+param['num_class'] = 22
 
 watchlist = [(xg_train, 'train'), (xg_test, 'test')]
 num_round = 500
