@@ -9,15 +9,8 @@ import gensim
 torch.manual_seed(2)
 # sys.stdout = open('1.log', 'a')
 sent='明天是荣耀运营十周年纪念日。' \
-     '荣耀从两周年纪念日开始，' \
-     '在每年的纪念日这天凌晨零点会开放一个新区。' \
-     '第十版账号卡的销售从三个月前就已经开始。' \
-     '在老区玩的不顺心的老玩家、准备进入荣耀的新手，都已经准备好了新区账号对这个日子翘首以盼。' \
-    '陈果坐到了叶修旁边的机器，随手登录了她的逐烟霞。' \
-     '其他九大区的玩家人气并没有因为第十区的新开而降低多少，' \
-     '越老的区越是如此，实在是因为荣耀的一个账号想经营起来并不容易。' \
-     '陈果的逐烟霞用了五年时间才在普通玩家中算是翘楚，哪舍得轻易抛弃。' \
-     '更何况到最后大家都会冲着十大区的共同地图神之领域去。'
+     '荣耀从两周年纪念日开始，'
+
 words=jieba.posseg.cut(sent,HMM=True) #分词
 processword=[]
 tagword=[]
@@ -26,7 +19,6 @@ for w in words:
     tagword.append(w.flag)
 #词语和对应的词性做一一对应
 texts=[(processword,tagword)]
-
 #使用gensim构建本例的词汇表
 id2word=gensim.corpora.Dictionary([texts[0][0]])
 #每个词分配一个独特的ID
@@ -36,7 +28,6 @@ word2id=id2word.token2id
 id2tag=gensim.corpora.Dictionary([texts[0][1]])
 #为每个词性分配ID
 tag2id=id2tag.token2id
-
 
 def sen2id(inputs):
     return [word2id[word] for word in inputs]
@@ -77,7 +68,9 @@ class LSTMTagger(torch.nn.Module):
     def forward(self,inputs):
 
         # 预处理文本转成稠密向量
-        embeds=self.embedding((inputs))
+        embeds=self.embedding(inputs)
+        print(len(inputs),embeds.shape)
+        #print(embeds.view(len(inputs),1,-1).shape)
         #根据文本的稠密向量训练网络
         out,self.hidden=self.lstm(embeds.view(len(inputs),1,-1),self.hidden)
         #做出预测
@@ -85,47 +78,49 @@ class LSTMTagger(torch.nn.Module):
         tags=F.log_softmax(tag_space,dim=1)
         return tags
 
-
+print(len(word2id))
 model=LSTMTagger(10,10,len(word2id),len(tag2id))
 loss_function=nn.NLLLoss()
 optimizer=optim.SGD(model.parameters(),lr=0.1)
 #看看随机初始化网络的分析结果
 with torch.no_grad():
     input_s=formart_input(texts[0][0])
-    print(input_s)
+    #print(input_s)
     print(processword)
     tag_s=model(input_s)
-    for i in range(tag_s.shape[0]):
-        print(tag_s[i])
+    #for i in range(tag_s.shape[0]):
+        #print(tag_s[i])
     # print(tag_s)
-for epoch in range(300):
-    # 再说明下, 实际情况下你不会训练300个周期, 此例中我们只是构造了一些假数据
-    for p ,t in texts:
-        # Step 1. 请记住 Pytorch 会累加梯度
-        # 每次训练前需要清空梯度值
-        model.zero_grad()
-
-        # 此外还需要清空 LSTM 的隐状态
-        # 将其从上个实例的历史中分离出来
-        # 重新初始化隐藏层数据，避免受之前运行代码的干扰,如果不重新初始化，会有报错。
-        model.hidden = model.init_hidden()
-
-        # Step 2. 准备网络输入, 将其变为词索引的Tensor 类型数据
-        sentence_in=formart_input(p)
-        tags_in=formart_tag(t)
-
-        # Step 3. 前向传播
-        tag_s=model(sentence_in)
-
-        # Step 4. 计算损失和梯度值, 通过调用 optimizer.step() 来更新梯度
-        loss=loss_function(tag_s,tags_in)
-        loss.backward()
-        print('Loss:',loss.item())
-        optimizer.step()
+# for epoch in range(300):
+#     # 再说明下, 实际情况下你不会训练300个周期, 此例中我们只是构造了一些假数据
+#     for p ,t in texts:
+#         # Step 1. 请记住 Pytorch 会累加梯度
+#         # 每次训练前需要清空梯度值
+#         model.zero_grad()
+#
+#         # 此外还需要清空 LSTM 的隐状态
+#         # 将其从上个实例的历史中分离出来
+#         # 重新初始化隐藏层数据，避免受之前运行代码的干扰,如果不重新初始化，会有报错。
+#         model.hidden = model.init_hidden()
+#
+#         # Step 2. 准备网络输入, 将其变为词索引的Tensor 类型数据
+#         sentence_in=formart_input(p)
+#         tags_in=formart_tag(t)
+#
+#         # Step 3. 前向传播
+#         tag_s=model(sentence_in)
+#
+#         # Step 4. 计算损失和梯度值, 通过调用 optimizer.step() 来更新梯度
+#         loss=loss_function(tag_s,tags_in)
+#         loss.backward()
+#         print('Loss:',loss.item())
+#         optimizer.step()
 
 #看看训练后的结果
 with torch.no_grad():
     input_s=formart_input(texts[0][0])
+    print(input_s)
     tag_s=model(input_s)
+    class_index = torch.argmax(tag_s[0])
     for i in range(tag_s.shape[0]):
-        print(tag_s[i])
+        class_index = torch.argmax(tag_s[i])

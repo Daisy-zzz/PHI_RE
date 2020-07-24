@@ -53,11 +53,13 @@ def parse_data(data):
                 r_type = record[1]
                 e1 = record[2].split(':')[1]
                 e2 = record[3].split(':')[1]
-                e1_type = e.get(e1)[0]
-                e2_type = e.get(e2)[0]
-                e1_text = e.get(e1)[1]
-                e2_text = e.get(e2)[1]
+                # e1_type = e.get(e1)[0]
+                # e2_type = e.get(e2)[0]
+                # e1_text = e.get(e1)[1]
+                # e2_text = e.get(e2)[1]
+                e[record[0]] = [r_type, e1, e2]
         line['annotation'] = e
+        print(e)
         # parse content
         s_list = list(filter(None, re.split("[。！!？?\n]", line['content'])))
         for sentence in s_list:
@@ -71,25 +73,32 @@ def parse_data(data):
 
 
 def get_entity_pair(parsed_data):
+    train_data = pd.DataFrame(columns=['e1type', 'e1text', 'e2type', 'e2text', 'sentence', 'relation'])
     pre_data = []  #pd.DataFrame(columns=['e1', 'e2', 's'])
     for i in range(len(parsed_data)):
         e_dict = parsed_data['annotation'][i]
         s_list = parsed_data['content'][i]
         key_list = []
         for key in e_dict.keys():
-            key_list.append(key)
+            if key[0] == 'R':
+                key_list.append(key)
         pre_data_line = []
-        for j in range(len(key_list) - 1):
-            e1 = {key_list[j]: e_dict.get(key_list[j])}
-            e2 = {key_list[j + 1]: e_dict.get(key_list[j + 1])}
-            idx1 = list_find_str(s_list, '<' + key_list[j] + '>')
-            idx2 = list_find_str(s_list, '<' + key_list[j + 1] + '>')
+        for j in range(len(key_list)):
+
+            e1 = e_dict.get(key_list[j])[1]
+            e2 = e_dict.get(key_list[j])[2]
+            idx1 = list_find_str(s_list, '<' + e1 + '>')
+            idx2 = list_find_str(s_list, '<' + e2 + '>')
             # ? how to concat two different sentences
             sentence = s_list[idx1] if idx1 == idx2 else s_list[idx1] + s_list[idx2]
-            pre_data_line.append([e1, e2, sentence])
-            #pre_data1 = np.array(pre_data)
-        pre_data.append(pre_data_line)
-    return pre_data
+
+            r_type = e_dict.get(key_list[j])[0]
+            e1_type = e_dict.get(e1)[0]
+            e1_text = e_dict.get(e1)[1]
+            e2_type = e_dict.get(e2)[0]
+            e2_text = e_dict.get(e2)[1]
+            train_data.loc[len(train_data)] = [e1_type, e1_text, e2_type, e2_text, sentence, r_type]
+    return train_data
 
 
 # 创建停用词列表
@@ -124,15 +133,13 @@ def move_stopwords(sentence_list, stopwords_list):
     return out_list
 
 
-#if __name__ == '__main__':
-def to_encode():
-    raw = pd.read_csv('../data/try.csv', index_col=0)[:3]
+if __name__ == '__main__':
+    raw = pd.read_csv('../data/train_data.csv', index_col=0)[: 3]
     parsed_data = parse_data(raw)
     #print(parsed_data)
-    pre_data = get_entity_pair(parsed_data)
+    train_data = get_entity_pair(parsed_data)
+    print(train_data)
     # pre_data是三重list，(文本行数，每行的实体对数，2)
-    return pre_data
-    #data.to_csv('data/try.csv')
-    #print(data['content'])
+    train_data.to_csv('train.csv')
 
-to_encode()
+

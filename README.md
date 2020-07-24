@@ -3,11 +3,11 @@ A Project for Relation Extraction
 Data statics:
 1. 1895 samples, 1888 after dropna
 2. 95944 entities records, 19989/34(name/type) entities (14948 not in wordvector)
-3. 54622 relation records, 21 relation types(+1 no relation = 23)
+3. 54622 relation records, 21 relation types(+1 no relation = 22)
 
 Relation Sample:
 R742a31d5 38874
-R494545ec 11205
+R494545ec 11205``
 R1c836a8a 1524
 Rd9a4dbac 1150
 Rfbf8550f 379
