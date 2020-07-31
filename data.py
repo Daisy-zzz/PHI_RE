@@ -4,11 +4,12 @@ import gensim
 from gensim.models import Word2Vec
 import jieba
 import re
+import torch
 dummy = np.random.rand(1, 128)
 data1 = pd.read_csv('data/data.csv').astype(str)
 data2 = pd.read_csv('data/data_non.csv').astype(str)
 data = pd.concat([data1, data2])
-model = gensim.models.KeyedVectors.load_word2vec_format('data/wordembedding/190721_AAAA_jieba_vec_128.vec')
+#model = gensim.models.KeyedVectors.load_word2vec_format('data/embedding/190721_AAAA_jieba_vec_128.vec')
 
 
 # 创建停用词列表

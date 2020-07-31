@@ -43,8 +43,6 @@ def re2id():
         f.write('None' + '\t' + '0' + '\n')
         for i in range(len(relation)):
             f.write(relation[i] + '\t' + str(i + 1) + '\n')
-re2id()
-
 
 
 def gen_nonType(n):
@@ -78,7 +76,7 @@ def gen_nonType(n):
                     e2r_dict[relation] = temp
                 else:
                     e2r_dict[relation] = [[e1, e2]]
-        print(e2r_dict)
+        #print(e2r_dict)
         flag = True
         random.shuffle(entity)
         for n1 in range(len(entity)):
@@ -87,28 +85,32 @@ def gen_nonType(n):
             for n2 in range(n1 + 1, len(entity)):
                 if [entity[n1], entity[n2]] not in list(e2r_dict.values()):
                     flag = False
-                    j = j + 1
                     relation = 'None'
                     e1 = entity[n1]
                     e2 = entity[n2]
                     v1 = e.get(e1)
                     v2 = e.get(e2)
+                    if len(v1) < 4 or len(v1) < 4:
+                        continue
                     e1type = v1[0]
                     e2type = v2[0]
                     content = data['content'][row]
-                    entity1 = content[int(v1[1]): int(v1[2])]
-                    entity2 = content[int(v2[1]): int(v2[2])]
-                    k = int(v1[1])
-                    l = int(v1[2])
+                    entity1 = v1[3]
+                    entity2 = v2[3]
+                    k = min(int(v1[1]), int(v2[1]))
+                    l = max(int(v2[2]), int(v1[2]))
                     while 0 < k < len(content) and content[k] != '\n':
                         k = k - 1
                     while 0 < l < len(content) and content[l] != '\n':
                         l = l + 1
                     sentence = content[k: l].strip()
+                    if len(sentence) > 200:
+                        continue
                     data_non.loc[len(data_non)] = [entity1, e1type, entity2, e2type, relation, sentence]
+                    j = j + 1
                     break
-    data_non.to_csv('data_non.csv', encoding='utf-8')
-
+    data_non.to_csv('data/data_non.csv', encoding='utf-8')
+gen_nonType(200)
 
 
 def gen_new_table():
@@ -182,7 +184,7 @@ def gen_new_table():
 
 # 分词
 # nonword = []
-# model = gensim.models.KeyedVectors.load_word2vec_format('data/wordembedding/190721_AAAA_jieba_vec_128.vec')
+# model = gensim.models.KeyedVectors.load_word2vec_format('data/embedding/190721_AAAA_jieba_vec_128.vec')
 # for i in range(len(eList)):
 #     if eList[i] not in model:
 #         seg = jieba.lcut(eList[i], cut_all=True, HMM=True)
